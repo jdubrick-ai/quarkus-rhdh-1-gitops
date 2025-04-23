@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dsp-clone-job-quarkus-rhdh-1-gitops
+spec:
+  template:
+    metadata:
+      name: dsp-clone-job-quarkus-rhdh-1-gitops
+    spec:
+      serviceAccountName: quarkus-rhdh-1-dsp-job
+      containers:
+        - name: initialize-dsp
+          image: quay.io/redhat-ai-dev/utils:latest
+          command:
+            - /bin/bash
+            - -c
+            - |
+              NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+              oc wait -l statefulset=quarkus-rhdh-1-notebook --for=condition=ready pod --timeout=300s
+              oc exec  StatefulSet/quarkus-rhdh-1-notebook -- git clone https://github.com/jdubrick-ai/quarkus-rhdh-1
+      restartPolicy: Never
